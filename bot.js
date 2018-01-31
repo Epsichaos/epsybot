@@ -1,6 +1,9 @@
 var Discord = require('discord.io');
 var logger = require('winston');
 var auth = require('./auth.json');
+var characterApi = require('./character');
+var https = require('https');
+
 // Configure logger settings
 logger.remove(logger.transports.Console);
 logger.add(logger.transports.Console, {
@@ -8,16 +11,16 @@ logger.add(logger.transports.Console, {
 });
 logger.level = 'debug';
 // Initialize Discord Bot
-var bot = new Discord.Client({
-   token: auth.token,
-   autorun: true
+bot = new Discord.Client({
+    token: auth.token,
+    autorun: true
 });
-bot.on('ready', function (evt) {
+bot.on('ready', function(evt) {
     logger.info('Connected');
     logger.info('Logged in as: ');
     logger.info(bot.username + ' - (' + bot.id + ')');
 });
-bot.on('message', function (user, userID, channelID, message, evt) {
+bot.on('message', function(user, userID, channelID, message, evt) {
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
     if (message.substring(0, 1) == '!') {
@@ -25,7 +28,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
         var cmd = args[0];
 
         args = args.splice(1);
-        switch(cmd) {
+        switch (cmd) {
             // !ping
             case 'ping':
                 bot.sendMessage({
@@ -33,8 +36,17 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     message: 'Pong!'
                 });
                 logger.info('Sent message Pong!')
-            break;
-            // Just add any case commands if you want to..
-         }
-     }
+                break;
+            case 'ilvl':
+                characterApi.character_ilvl(args, function(max, equiped) {
+                    logger.info(user + " requested ilvl -> max: " + max + ", equiped: " + equiped);
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "Requested ilvl -> max: " + max + ", equiped: " + equiped
+                    });
+                })
+                break;
+                // Just add any case commands if you want to..
+        }
+    }
 });
