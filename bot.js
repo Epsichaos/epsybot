@@ -3,6 +3,7 @@ var logger = require('winston');
 var auth = require('./auth.json');
 var characterApi = require('./character');
 var https = require('https');
+var commands = require('./model/commands')
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -30,11 +31,11 @@ bot.on('message', message => {
         args = args.splice(1);
         switch (cmd) {
             // !ping
-            case 'ping':
+            case commands.PING:
                 message.channel.send('Pong!')
                 logger.info('Sent message Pong!')
                 break;
-            case 'ilvl':
+            case commands.ILVL:
                 characterApi.character_ilvl(args, function(max, equiped) {
                     logger.info(message.author.username + " requested ilvl -> max: " + max + ", equiped: " + equiped);
                     message.channel.send(message.author + " requested ilvl -> max: " + max + ", equiped: " + equiped)
