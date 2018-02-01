@@ -1,4 +1,4 @@
-var Discord = require('discord.io');
+var Discord = require('discord.js');
 var logger = require('winston');
 var auth = require('./auth.json');
 var characterApi = require('./character');
@@ -11,39 +11,33 @@ logger.add(logger.transports.Console, {
 });
 logger.level = 'debug';
 // Initialize Discord Bot
-bot = new Discord.Client({
-    token: auth.token,
-    autorun: true
-});
+bot = new Discord.Client();
+const token = auth.token;
+bot.login(token);
+
 bot.on('ready', function(evt) {
     logger.info('Connected');
     logger.info('Logged in as: ');
-    logger.info(bot.username + ' - (' + bot.id + ')');
+    logger.info('Bot connected — ' + bot.user.username);
 });
-bot.on('message', function(user, userID, channelID, message, evt) {
+bot.on('message', message => {
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
-    if (message.substring(0, 1) == '!') {
-        var args = message.substring(1).split(' ');
+    if (message.content.substring(0, 1) == '!') {
+        var args = message.content.substring(1).split(' ');
         var cmd = args[0];
 
         args = args.splice(1);
         switch (cmd) {
             // !ping
             case 'ping':
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'Pong!'
-                });
+                message.channel.send('Pong!')
                 logger.info('Sent message Pong!')
                 break;
             case 'ilvl':
                 characterApi.character_ilvl(args, function(max, equiped) {
-                    logger.info(user + " requested ilvl -> max: " + max + ", equiped: " + equiped);
-                    bot.sendMessage({
-                        to: channelID,
-                        message: "Requested ilvl -> max: " + max + ", equiped: " + equiped
-                    });
+                    logger.info(message.author.username + " requested ilvl -> max: " + max + ", equiped: " + equiped);
+                    message.channel.send(message.author + " requested ilvl -> max: " + max + ", equiped: " + equiped)
                 })
                 break;
                 // Just add any case commands if you want to..
